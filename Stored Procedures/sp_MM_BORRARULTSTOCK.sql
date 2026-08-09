@@ -1,0 +1,57 @@
+USE [ESPO]
+GO
+/****** Object:  StoredProcedure [dbo].[sp_MM_BORRARULTSTOCK]    Script Date: 8/6/2025 3:33:30 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[sp_MM_BORRARULTSTOCK]
+@IDREFERENCIA INT =0,
+@USERNAME VARCHAR(60) ,
+@MENSAJE varchar(150) OUTPUT
+AS
+BEGIN
+SET NOCOUNT ON
+
+    BEGIN TRANSACTION;
+
+    DECLARE @IDELIMINAR INT;
+    DECLARE @IDACTIVAR INT;
+
+    SELECT TOP (1)
+        @IDELIMINAR = IDMM_RF_STOCK
+    FROM MM_RF_STOCK
+    WHERE IDREFERENCIA = @IDREFERENCIA
+    AND ACTIVO = 1
+    ORDER BY IDMM_RF_STOCK DESC;
+
+    IF @IDELIMINAR IS NOT NULL
+    BEGIN
+        DELETE FROM MM_RF_STOCK
+        WHERE IDMM_RF_STOCK = @IDELIMINAR;
+
+        SELECT TOP (1)
+            @IDACTIVAR = IDMM_RF_STOCK
+        FROM MM_RF_STOCK
+        WHERE IDREFERENCIA = @IDREFERENCIA
+        ORDER BY IDMM_RF_STOCK DESC;
+
+        -- Dejar todos inactivos
+        UPDATE MM_RF_STOCK
+        SET ACTIVO = 0
+        WHERE IDREFERENCIA = @IDREFERENCIA;
+
+        -- Activar únicamente el más reciente
+        IF @IDACTIVAR IS NOT NULL
+        BEGIN
+            UPDATE MM_RF_STOCK
+            SET ACTIVO = 1
+            WHERE IDMM_RF_STOCK = @IDACTIVAR;
+
+            SET @MENSAJE = 'Registro eliminado y el stock más reciente activado correctamente.';
+        END
+    END
+
+    COMMIT TRANSACTION;
+
+END
