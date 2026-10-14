@@ -1,10 +1,8 @@
-USE [ESPO]
-GO
-/****** Object:  StoredProcedure [dbo].[sp_TH_PAGAR_LIQVACACIONES]    Script Date: 8/8/2025 3:17:09 PM ******/
-SET ANSI_NULLS ON
-GO
 SET QUOTED_IDENTIFIER ON
 GO
+SET ANSI_NULLS ON
+GO
+--[dbo].[sp_TH_PAGAR_LIQVACACIONES] 492,'2026-06-10',1,'ESPO',''
 ALTER PROCEDURE [dbo].[sp_TH_PAGAR_LIQVACACIONES]
     @IDLIQUIDACIONVACACIONES INT,
     @FECHA_PAGO DATE,
@@ -15,6 +13,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
+            
     DECLARE 
         @IDMOVGC        INT = 0,
         @BASE           INT = 0,
@@ -25,6 +24,7 @@ BEGIN
         @NATURALEZA     CHAR(1) = '',
         @NROASIENTO     INT = 0,
         @CONTABILIZADO  INT = 0,        
+        @PAGADO  INT = 0,        
         @SALARIOMINIMOMES decimal(10,2), 
         @FECHATRCR      DATE = CAST(GETDATE() AS DATE);
 
@@ -33,7 +33,7 @@ BEGIN
     FROM TH_LIQUIDACIONVACACIONES
     WHERE IDLIQUIDACIONVACACIONES = @IDLIQUIDACIONVACACIONES;
 
-    IF @CONTABILIZADO = 0
+    IF @CONTABILIZADO = 1 AND @PAGADO=0
     BEGIN
         DECLARE 
             @PERIODOPAGO   INT,
@@ -227,7 +227,7 @@ BEGIN
 
             -- Cambiar estado
             UPDATE TH_LIQUIDACIONVACACIONES
-            SET CONTABILIZADO = 1
+            SET PAGADO = 1
             WHERE IDLIQUIDACIONVACACIONES = @IDLIQUIDACIONVACACIONES;
 
             SET @MENSAJE = 'Pago creado correctamente';
@@ -241,3 +241,4 @@ BEGIN
     END
 
 END
+GO
