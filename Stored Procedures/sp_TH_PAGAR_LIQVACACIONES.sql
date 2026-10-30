@@ -137,7 +137,7 @@ BEGIN
 
             --IF @DEVENGADO>0 SET @DVSUELDOB=@DEVENGADO;
 
-            IF @DVSUELDOB > 0 INSERT INTO @InsertMovimiento VALUES (N'250803', N'250504', @DVSUELDOB);
+            --IF @DVSUELDOB > 0 INSERT INTO @InsertMovimiento VALUES (N'250803', N'250504', @DVSUELDOB);
 
             --Paso 2 Pago
 

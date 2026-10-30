@@ -109,11 +109,24 @@ BEGIN
         BEGIN
 
             DECLARE @PERIODO INT =  CAST(CONVERT(varchar(8), EOMONTH(@FECHAINICIO), 112) AS INT) ;
+            DECLARE @DESCRIPCIONLIQUIDACION VARCHAR(100) = 'Liquidación de Vacaciones del periodo ' + CAST(@PERIODO AS VARCHAR(6)) + ' para el empleado ' + @NUMIDENTIFICACION;
 
+            --Verificar que no se haya incluido en otra liquidación para el mismo periodo y empleado 
+            IF EXISTS (
+                    SELECT 1 
+                    FROM TH_NOMINALIQC 
+                    WHERE PERIODO = @PERIODO 
+                    AND DESCRIPCION LIKE @DESCRIPCIONLIQUIDACION
+                    AND EMPLEADOS_LIQUIDADOS = 1 
+                    AND USUARIOLIQUIDO = @USERNAME)
+            BEGIN
+                SET @MENSAJE = 'Ya existe una liquidación de vacaciones para el periodo ' + CAST(@PERIODO AS VARCHAR(6)) + ' y el empleado ' + @NUMIDENTIFICACION;
+                RETURN;
+            END
 
             --Crear cabecera de tabla liquidación
             INSERT INTO TH_NOMINALIQC (VALOR,USUARIOLIQUIDO,PERIODO,FECHALIQUIDACION,FECHAMOVIMIENTO,MOD_ORIGEN,ESTADO,DESCRIPCION,EMPLEADOS_LIQUIDADOS,OBSERVACIONESLIQUIDACION,USUARIOTRCR,FECHATRCR,USUARIOTRED,FECHATRED,IDBANCO)
-            VALUES (0,@USERNAME,@PERIODO,@FECHAINICIO,@FECHATRCR,'LIQVAC','L','Liquidación de Vacaciones',1,'Liquidación de Vacaciones',@USERNAME,@FECHATRCR,@USERNAME,@FECHATRCR,NULL);
+            VALUES (0,@USERNAME,@PERIODO,@FECHAINICIO,@FECHATRCR,'LIQVAC','L',@DESCRIPCIONLIQUIDACION,1,@DESCRIPCIONLIQUIDACION,@USERNAME,@FECHATRCR,@USERNAME,@FECHATRCR,NULL);
             
             SET @IDNOMINALIQC = SCOPE_IDENTITY();
 
